@@ -276,6 +276,143 @@
     .panel-item.active .panel-name { color: #ccc; }
 
     #file-input { display: none; }
+
+    /* ── Adjust Button ────────────────────────────────────── */
+    #adjust-btn {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      background: transparent;
+      color: #777;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #adjust-btn:hover { border-color: #555; color: #ccc; }
+    #adjust-btn svg   { width: 13px; height: 13px; }
+
+    /* ── Edit Panel ───────────────────────────────────────── */
+    #edit-panel {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #111;
+      border-top: 1px solid #1e1e1e;
+      border-radius: 18px 18px 0 0;
+      z-index: 300;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 78vh;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    #edit-panel::-webkit-scrollbar { display: none; }
+    #edit-panel.open { transform: translateY(0); }
+
+    #edit-panel-inner {
+      padding: 20px 22px 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #edit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    #edit-header span {
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #777;
+    }
+    #edit-close {
+      background: none; border: none;
+      color: #555; font-size: 1.6rem; line-height: 1;
+      cursor: pointer; padding: 0 4px;
+      transition: color 0.15s;
+    }
+    #edit-close:hover { color: #fff; }
+
+    #slider-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 28px;
+    }
+    @media (max-width: 400px) { #slider-grid { grid-template-columns: 1fr; } }
+
+    .sl-row   { display: flex; flex-direction: column; gap: 6px; }
+    .sl-head  { display: flex; justify-content: space-between; align-items: baseline; }
+    .sl-label { font-size: 0.65rem; color: #555; letter-spacing: 0.07em; text-transform: uppercase; }
+    .sl-val   { font-size: 0.65rem; color: #555; min-width: 26px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    input[type=range].adj-sl {
+      -webkit-appearance: none;
+      width: 100%; height: 2px;
+      background: #252525;
+      border-radius: 1px;
+      outline: none; cursor: pointer;
+    }
+    input[type=range].adj-sl::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: #fff; border-radius: 50%; cursor: pointer;
+    }
+    input[type=range].adj-sl::-moz-range-thumb {
+      width: 14px; height: 14px;
+      background: #fff; border-radius: 50%;
+      border: none; cursor: pointer;
+    }
+
+    #edit-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 22px;
+      align-items: center;
+    }
+    #preset-name-input {
+      flex: 1; min-width: 0;
+      background: #1a1a1a;
+      border: 1px solid #252525;
+      border-radius: 8px;
+      color: #ccc;
+      font-size: 0.76rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    #preset-name-input::placeholder { color: #333; }
+    #preset-name-input:focus { border-color: #444; }
+    #edit-reset {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #666;
+      font-size: 0.72rem; font-weight: 500;
+      padding: 8px 14px; cursor: pointer;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #edit-reset:hover { border-color: #555; color: #ccc; }
+    #edit-save {
+      flex-shrink: 0;
+      background: #fff; color: #000;
+      border: none; border-radius: 8px;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 8px 16px; cursor: pointer;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    #edit-save:hover { opacity: 0.82; }
   </style>
 </head>
 <body>
@@ -313,6 +450,18 @@
 </div>
 
 <div id="controls">
+  <button id="adjust-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6"  x2="20" y2="6"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="18" x2="20" y2="18"/>
+      <circle cx="9"  cy="6"  r="2.5"/>
+      <circle cx="15" cy="12" r="2.5"/>
+      <circle cx="9"  cy="18" r="2.5"/>
+    </svg>
+    Adjust
+  </button>
   <button id="view-all-btn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
@@ -349,6 +498,21 @@
   </div>
 </div>
 
+<div id="edit-panel">
+  <div id="edit-panel-inner">
+    <div id="edit-header">
+      <span>Custom Filter</span>
+      <button id="edit-close">×</button>
+    </div>
+    <div id="slider-grid"></div>
+    <div id="edit-footer">
+      <input type="text" id="preset-name-input" placeholder="Preset name…" maxlength="28">
+      <button id="edit-reset">Reset</button>
+      <button id="edit-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="file-input" accept="image/*">
 
 <script>
@@ -365,6 +529,7 @@ const FILTERS = [
   { id: 'noir',     label: 'Noir'     },
   { id: 'dreamy',   label: 'Dreamy'   },
   { id: 'y2k',      label: 'Y2K'      },
+  { id: 'y2kflash', label: 'Y2K Flash'},
   { id: 'golden',   label: 'Golden'   },
   { id: 'film',     label: 'Film'     },
   { id: 'pacific',  label: 'Pacific'  },
@@ -375,8 +540,23 @@ const FILTERS = [
 const THUMB = 82;
 
 // ── State ──────────────────────────────────────────────────────────────────
-let srcImage = null;
-let activeId = 'original';
+let srcImage       = null;
+let activeId       = 'original';
+let customPresets  = [];
+let preEditActive  = 'original';
+
+const SLIDER_DEFS = [
+  { id: 'brightness', label: 'Brightness', min: -100, max: 100, def: 0 },
+  { id: 'contrast',   label: 'Contrast',   min: -100, max: 100, def: 0 },
+  { id: 'saturation', label: 'Saturation', min: -100, max: 100, def: 0 },
+  { id: 'warmth',     label: 'Warmth',     min: -100, max: 100, def: 0 },
+  { id: 'fade',       label: 'Fade',       min:    0, max: 100, def: 0 },
+  { id: 'grain',      label: 'Grain',      min:    0, max: 100, def: 0 },
+  { id: 'vignette',   label: 'Vignette',   min:    0, max: 100, def: 0 },
+  { id: 'sharpness',  label: 'Sharpness',  min:    0, max: 100, def: 0 },
+];
+const customSettings = {};
+for (const s of SLIDER_DEFS) customSettings[s.id] = s.def;
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const dropzone      = document.getElementById('dropzone');
@@ -391,6 +571,13 @@ const filterList    = document.getElementById('filter-list');
 const allPanel      = document.getElementById('all-panel');
 const allPanelGrid  = document.getElementById('all-panel-grid');
 const allPanelClose = document.getElementById('all-panel-close');
+const adjustBtn     = document.getElementById('adjust-btn');
+const editPanel     = document.getElementById('edit-panel');
+const editClose     = document.getElementById('edit-close');
+const editReset     = document.getElementById('edit-reset');
+const editSave      = document.getElementById('edit-save');
+const presetNameInput = document.getElementById('preset-name-input');
+const sliderGrid    = document.getElementById('slider-grid');
 
 // ── Build strip ────────────────────────────────────────────────────────────
 for (const f of FILTERS) {
@@ -436,6 +623,7 @@ function loadFile(file) {
     downloadBtn.style.display   = 'flex';
     viewAllBtn.style.display    = 'flex';
     deleteBtn.style.display     = 'flex';
+    adjustBtn.style.display     = 'flex';
     dropzone.classList.add('has-image');
   };
   img.src = url;
@@ -451,12 +639,18 @@ deleteBtn.addEventListener('click', e => {
   downloadBtn.style.display   = 'none';
   viewAllBtn.style.display    = 'none';
   deleteBtn.style.display     = 'none';
+  adjustBtn.style.display     = 'none';
+  closeEditPanel(false);
   dropzone.classList.remove('has-image');
   document.querySelectorAll('.filter-item').forEach(el =>
     el.classList.toggle('active', el.dataset.id === 'original')
   );
   for (const f of FILTERS) {
     const c = document.getElementById(`th-${f.id}`);
+    if (c) c.getContext('2d').clearRect(0, 0, THUMB, THUMB);
+  }
+  for (const p of customPresets) {
+    const c = document.getElementById(`th-${p.id}`);
     if (c) c.getContext('2d').clearRect(0, 0, THUMB, THUMB);
   }
   fileInput.value = '';
@@ -473,7 +667,7 @@ function closePanel() { allPanel.classList.remove('open'); }
 
 function buildPanelGrid() {
   allPanelGrid.innerHTML = '';
-  for (const f of FILTERS) {
+  for (const f of [...FILTERS, ...customPresets]) {
     const canvas  = document.getElementById(`th-${f.id}`);
     const dataURL = canvas ? canvas.toDataURL() : '';
     const item    = document.createElement('div');
@@ -505,6 +699,7 @@ function renderThumbs() {
     ctx.putImageData(id, 0, 0);
     runOverlay(ctx, f.id, THUMB, THUMB);
   }
+  for (const p of customPresets) renderCustomThumb(p);
 }
 
 // ── Preview ────────────────────────────────────────────────────────────────
@@ -550,10 +745,20 @@ downloadBtn.addEventListener('click', () => {
   a.click();
 });
 
-window.addEventListener('resize', () => { if (srcImage) renderPreview(activeId); });
+window.addEventListener('resize', () => {
+  if (srcImage) {
+    if (editPanel.classList.contains('open')) renderCustomPreview();
+    else renderPreview(activeId);
+  }
+});
 
 // ── Filter Router ──────────────────────────────────────────────────────────
 function runFilter(imageData, id, w, h) {
+  if (id.startsWith('custom-')) {
+    const p = customPresets.find(p => p.id === id);
+    if (p) fCustom(imageData, w, h, p.settings);
+    return;
+  }
   switch (id) {
     case '8k':       f8K(imageData, w, h);  break;
     case 'antigua':  fAntiqua(imageData);   break;
@@ -562,8 +767,9 @@ function runFilter(imageData, id, w, h) {
     case 'polaroid': fPolaroid(imageData);  break;
     case 'noir':     fNoir(imageData);      break;
     case 'dreamy':   fDreamy(imageData);    break;
-    case 'y2k':      fY2K(imageData, w, h); break;
-    case 'golden':   fGolden(imageData);    break;
+    case 'y2k':      fY2K(imageData, w, h);      break;
+    case 'y2kflash': fY2KFlash(imageData, w, h); break;
+    case 'golden':   fGolden(imageData);          break;
     case 'film':     fFilm(imageData);      break;
     case 'pacific':  fPacific(imageData);   break;
     case 'moody':    fMoody(imageData);     break;
@@ -573,6 +779,12 @@ function runFilter(imageData, id, w, h) {
 }
 
 function runOverlay(ctx, id, w, h) {
+  if (id.startsWith('custom-')) {
+    const p = customPresets.find(p => p.id === id);
+    if (p && p.settings.vignette > 0)
+      vignette(ctx, w, h, p.settings.vignette / 100 * 0.9, [0, 0, 0]);
+    return;
+  }
   switch (id) {
     case '8k':       vignette(ctx, w, h, 0.18, [0,  0,  0]); break;
     case 'antigua':  vignette(ctx, w, h, 0.82, [0,  0,  0]); break;
@@ -581,6 +793,7 @@ function runOverlay(ctx, id, w, h) {
     case 'noir':     vignette(ctx, w, h, 0.68, [0,  0,  0]); break;
     case 'dreamy':   dreamyGlow(ctx, w, h);                   break;
     case 'y2k':      vignette(ctx, w, h, 0.20, [8, 18,  0]); break;
+    case 'y2kflash': vignette(ctx, w, h, 0.88, [0,  0,  0]); break;
     case 'golden':   vignette(ctx, w, h, 0.30, [28,10,  0]); break;
     case 'film':     vignette(ctx, w, h, 0.14, [0,  0,  0]); break;
     case 'pacific':  vignette(ctx, w, h, 0.24, [0,  0,  0]); break;
@@ -790,29 +1003,58 @@ function fDreamy(imageData) {
 
 // ── Y2K Real ────────────────────────────────────────────────────────────────
 function fY2K(imageData, w, h) {
-  convolve(imageData, [
-    0.05, 0.15, 0.05,
-    0.15, 0.20, 0.15,
-    0.05, 0.15, 0.05
-  ], w, h);
   const d  = imageData.data;
-  const hc = lut(v => v < 185 ? v : 185 + (v - 185) * 0.20);
+  const hc = lut(v => v < 210 ? v : 210 + (v - 210) * 0.45);
   for (let i = 0; i < d.length; i += 4) {
     let r = d[i], g = d[i + 1], b = d[i + 2];
     const gr = 0.299 * r + 0.587 * g + 0.114 * b;
-    r = clamp(gr + (r - gr) * 0.80 | 0);
-    g = clamp(gr + (g - gr) * 0.80 | 0);
-    b = clamp(gr + (b - gr) * 0.80 | 0);
+    r = clamp(gr + (r - gr) * 0.90 | 0);
+    g = clamp(gr + (g - gr) * 0.90 | 0);
+    b = clamp(gr + (b - gr) * 0.90 | 0);
     r = clamp(r * 1.05 | 0);
     g = clamp(g * 1.10 | 0);
     b = clamp(b * 0.78 | 0);
-    if (r > g + 18 && r > b + 18) r = clamp(r * 1.20 | 0);
+    if (r > g + 18 && r > b + 18) r = clamp(r * 1.12 | 0);
     d[i]     = hc[clamp(r)];
     d[i + 1] = hc[clamp(g)];
     d[i + 2] = hc[clamp(b)];
-    d[i]     = clamp(d[i]     + (Math.random() - 0.5) * 26);
-    d[i + 1] = clamp(d[i + 1] + (Math.random() - 0.5) * 20);
-    d[i + 2] = clamp(d[i + 2] + (Math.random() - 0.5) * 30);
+    d[i]     = clamp(d[i]     + (Math.random() - 0.5) * 12);
+    d[i + 1] = clamp(d[i + 1] + (Math.random() - 0.5) * 10);
+    d[i + 2] = clamp(d[i + 2] + (Math.random() - 0.5) * 14);
+  }
+}
+
+// ── Y2K Flash ─── digicam flash: blown center, crushed highlights, dark edges
+function fY2KFlash(imageData, w, h) {
+  const d  = imageData.data;
+  const hc = lut(v => v < 195 ? v : 195 + (v - 195) * 0.18);
+  const cx = w / 2, cy = h / 2;
+  const maxDist = Math.sqrt(cx * cx + cy * cy);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      let r = d[i], g = d[i + 1], b = d[i + 2];
+      // Y2K color grade
+      const gr = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = clamp(gr + (r - gr) * 0.88 | 0);
+      g = clamp(gr + (g - gr) * 0.88 | 0);
+      b = clamp(gr + (b - gr) * 0.88 | 0);
+      r = clamp(r * 1.05 | 0);
+      g = clamp(g * 1.08 | 0);
+      b = clamp(b * 0.80 | 0);
+      // Flash radial overexposure
+      const dx = x - cx, dy = y - cy;
+      const dist  = Math.sqrt(dx * dx + dy * dy) / maxDist;
+      const flash = Math.max(0, 1 - dist * dist);
+      const mult  = 1 + flash * 1.15;
+      r = hc[clamp(r * mult | 0)];
+      g = hc[clamp(g * mult | 0)];
+      b = hc[clamp(b * mult | 0)];
+      // Noise
+      d[i]     = clamp(r + (Math.random() - 0.5) * 14);
+      d[i + 1] = clamp(g + (Math.random() - 0.5) * 12);
+      d[i + 2] = clamp(b + (Math.random() - 0.5) * 16);
+    }
   }
 }
 
@@ -933,6 +1175,164 @@ function fFade(imageData) {
     d[i + 2] = b;
   }
 }
+
+// ── Custom ── user-defined filter ──────────────────────────────────────────
+function fCustom(imageData, w, h, s) {
+  if (s.sharpness > 0) {
+    const amt = (s.sharpness / 100) * 0.5;
+    convolve(imageData, [
+      0, -amt, 0,
+      -amt, 1 + amt * 4, -amt,
+      0, -amt, 0
+    ], w, h);
+  }
+  const d         = imageData.data;
+  const brightOff = (s.brightness / 100) * 80;
+  const contMult  = 1 + (s.contrast   / 100) * 0.8;
+  const satMult   = 1 + (s.saturation / 100);
+  const warmShift = (s.warmth  / 100) * 30;
+  const fadeLift  = (s.fade    / 100) * 55;
+  const fadeScale = (255 - fadeLift) / 255;
+  const grainAmt  = (s.grain   / 100) * 36;
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i + 1], b = d[i + 2];
+    r = r * fadeScale + fadeLift;
+    g = g * fadeScale + fadeLift;
+    b = b * fadeScale + fadeLift;
+    r += brightOff; g += brightOff; b += brightOff;
+    r = 128 + (r - 128) * contMult;
+    g = 128 + (g - 128) * contMult;
+    b = 128 + (b - 128) * contMult;
+    const gr = 0.299 * r + 0.587 * g + 0.114 * b;
+    r = gr + (r - gr) * satMult;
+    g = gr + (g - gr) * satMult;
+    b = gr + (b - gr) * satMult;
+    r += warmShift; b -= warmShift;
+    if (grainAmt > 0) {
+      const noise = (Math.random() - 0.5) * grainAmt;
+      r += noise; g += noise; b += noise;
+    }
+    d[i] = clamp(r); d[i + 1] = clamp(g); d[i + 2] = clamp(b);
+  }
+}
+
+// ── Custom Filter Panel ─────────────────────────────────────────────────────
+function buildSliders() {
+  sliderGrid.innerHTML = '';
+  for (const def of SLIDER_DEFS) {
+    const row = document.createElement('div');
+    row.className = 'sl-row';
+    row.innerHTML = `
+      <div class="sl-head">
+        <span class="sl-label">${def.label}</span>
+        <span class="sl-val" id="sv-${def.id}">${customSettings[def.id]}</span>
+      </div>
+      <input type="range" class="adj-sl" id="sl-${def.id}"
+             min="${def.min}" max="${def.max}" value="${customSettings[def.id]}">`;
+    sliderGrid.appendChild(row);
+    row.querySelector('input').addEventListener('input', e => {
+      customSettings[def.id] = +e.target.value;
+      document.getElementById(`sv-${def.id}`).textContent = e.target.value;
+      if (srcImage) renderCustomPreview();
+    });
+  }
+}
+
+function syncSliderUI() {
+  for (const def of SLIDER_DEFS) {
+    const inp = document.getElementById(`sl-${def.id}`);
+    const val = document.getElementById(`sv-${def.id}`);
+    if (inp) inp.value = customSettings[def.id];
+    if (val) val.textContent = customSettings[def.id];
+  }
+}
+
+function renderCustomPreview() {
+  if (!srcImage) return;
+  const rect  = dropzone.getBoundingClientRect();
+  const scale = Math.min(rect.width / srcImage.width, rect.height / srcImage.height, 1);
+  const w = Math.max(1, Math.round(srcImage.width  * scale));
+  const h = Math.max(1, Math.round(srcImage.height * scale));
+  previewCanvas.width  = w;
+  previewCanvas.height = h;
+  pCtx.drawImage(srcImage, 0, 0, w, h);
+  const id = pCtx.getImageData(0, 0, w, h);
+  fCustom(id, w, h, customSettings);
+  pCtx.putImageData(id, 0, 0);
+  if (customSettings.vignette > 0)
+    vignette(pCtx, w, h, customSettings.vignette / 100 * 0.9, [0, 0, 0]);
+}
+
+function renderCustomThumb(preset) {
+  const canvas = document.getElementById(`th-${preset.id}`);
+  if (!canvas || !srcImage) return;
+  const ctx  = canvas.getContext('2d', { willReadFrequently: true });
+  const s    = srcImage;
+  const side = Math.min(s.width, s.height);
+  const sx   = (s.width - side) / 2, sy = (s.height - side) / 2;
+  ctx.clearRect(0, 0, THUMB, THUMB);
+  ctx.drawImage(s, sx, sy, side, side, 0, 0, THUMB, THUMB);
+  const id = ctx.getImageData(0, 0, THUMB, THUMB);
+  fCustom(id, THUMB, THUMB, preset.settings);
+  ctx.putImageData(id, 0, 0);
+  if (preset.settings.vignette > 0)
+    vignette(ctx, THUMB, THUMB, preset.settings.vignette / 100 * 0.9, [0, 0, 0]);
+}
+
+function addPresetToStrip(preset) {
+  const el = document.createElement('div');
+  el.className = 'filter-item';
+  el.dataset.id = preset.id;
+  el.innerHTML = `
+    <div class="thumb-wrap">
+      <canvas class="filter-thumb" id="th-${preset.id}" width="${THUMB}" height="${THUMB}"></canvas>
+    </div>
+    <span class="filter-name">${preset.label}</span>`;
+  el.addEventListener('click', () => selectFilter(preset.id));
+  filterList.appendChild(el);
+  renderCustomThumb(preset);
+  el.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+}
+
+function openEditPanel() {
+  preEditActive = activeId;
+  buildSliders();
+  editPanel.classList.add('open');
+  if (srcImage) renderCustomPreview();
+}
+
+function closeEditPanel(restore) {
+  editPanel.classList.remove('open');
+  if (restore && srcImage) renderPreview(activeId);
+}
+
+adjustBtn.addEventListener('click', openEditPanel);
+
+editClose.addEventListener('click', () => {
+  activeId = preEditActive;
+  document.querySelectorAll('.filter-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === activeId)
+  );
+  closeEditPanel(true);
+});
+
+editReset.addEventListener('click', () => {
+  for (const s of SLIDER_DEFS) customSettings[s.id] = s.def;
+  syncSliderUI();
+  if (srcImage) renderCustomPreview();
+});
+
+editSave.addEventListener('click', () => {
+  const name   = presetNameInput.value.trim() || `Custom ${customPresets.length + 1}`;
+  const preset = { id: `custom-${Date.now()}`, label: name, settings: { ...customSettings } };
+  customPresets.push(preset);
+  addPresetToStrip(preset);
+  presetNameInput.value = '';
+  editPanel.classList.remove('open');
+  selectFilter(preset.id);
+});
+
+buildSliders();
 
 // ── Bloom ─── bright, airy, rosy, lifestyle/flatlay ────────────────────────
 function fBloom(imageData) {
