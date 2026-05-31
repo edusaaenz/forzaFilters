@@ -526,6 +526,153 @@
       transition: opacity 0.15s;
     }
     #crop-apply:hover { opacity: 0.82; }
+
+    /* ── Tabs ─────────────────────────────────────────────── */
+    #tab-bar {
+      display: flex;
+      gap: 4px;
+      background: #141414;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 8px 24px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #484848;
+      font-size: 0.74rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+    .tab-btn:hover:not(.active) { color: #888; }
+    .tab-btn.active { background: #2a2a2a; color: #ccc; }
+
+    #tab-filters { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    #tab-grid    { display: none; flex-direction: column; align-items: center; width: 100%; }
+
+    /* ── Grid Split ───────────────────────────────────────── */
+    #grid-dropzone {
+      width: min(600px, 100vw - 32px);
+      height: 190px;
+      border: 1.5px dashed #252525;
+      border-radius: 16px;
+      background: #111;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #grid-dropzone:hover,
+    #grid-dropzone.drag-over { border-color: #404040; background: #141414; }
+    #grid-dropzone.has-image  { cursor: default; }
+    #grid-drop-label {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      color: #363636; pointer-events: none; user-select: none;
+    }
+    #grid-drop-label svg { width: 42px; height: 42px; }
+    #grid-drop-label p   { font-size: 0.78rem; letter-spacing: 0.06em; }
+    #grid-src-preview {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 100%; max-height: 100%;
+      display: none; object-fit: contain; pointer-events: none;
+    }
+    #grid-delete-btn {
+      position: absolute; top: 10px; right: 10px;
+      width: 30px; height: 30px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(255,70,70,0.35);
+      border-radius: 7px; cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      color: #ff4444; z-index: 10;
+      transition: background 0.15s; padding: 0;
+    }
+    #grid-delete-btn:hover { background: rgba(180,20,20,0.80); }
+    #grid-delete-btn svg   { width: 13px; height: 13px; pointer-events: none; }
+
+    #grid-controls {
+      width: min(600px, 100vw - 32px);
+      display: flex;
+      gap: 18px;
+      margin-top: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .gctrl-group  { display: flex; align-items: center; gap: 8px; }
+    .gctrl-label  {
+      font-size: 0.65rem; color: #484848;
+      letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap;
+    }
+    .gctrl-btns   { display: flex; gap: 4px; }
+    .gctrl-btn {
+      background: transparent;
+      border: 1px solid #252525;
+      border-radius: 7px;
+      color: #555; font-size: 0.72rem;
+      padding: 5px 11px; cursor: pointer;
+      letter-spacing: 0.04em; font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .gctrl-btn:hover  { border-color: #555; color: #ccc; }
+    .gctrl-btn.active { border-color: #aaa; color: #fff; }
+
+    #grid-preview-wrap {
+      width: min(600px, 100vw - 32px);
+      margin-top: 16px;
+      display: none;
+    }
+    #grid-preview {
+      display: flex; gap: 3px;
+      overflow-x: auto; scrollbar-width: none;
+      padding: 2px 2px 8px;
+    }
+    #grid-preview::-webkit-scrollbar { display: none; }
+    .grid-tile-wrap { flex-shrink: 0; position: relative; }
+    .grid-tile-canvas { display: block; border-radius: 5px; }
+    .grid-tile-num {
+      position: absolute; bottom: 8px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      color: rgba(255,255,255,0.75);
+      font-size: 0.58rem; letter-spacing: 0.04em;
+      padding: 2px 7px; border-radius: 3px;
+      pointer-events: none;
+    }
+
+    #grid-footer {
+      width: min(600px, 100vw - 32px);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 10px;
+    }
+    #grid-info {
+      font-size: 0.67rem; color: #404040; letter-spacing: 0.04em;
+    }
+    #grid-dl-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: #fff; color: #000;
+      border: none; border-radius: 10px;
+      padding: 9px 20px;
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    #grid-dl-btn:hover { opacity: 0.82; }
+    #grid-dl-btn svg   { width: 13px; height: 13px; }
+    #grid-file-input   { display: none; }
   </style>
 </head>
 <body>
@@ -539,6 +686,13 @@
   </svg>
   <h1>Forza Filters</h1>
 </header>
+
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="filters">Filters</button>
+  <button class="tab-btn"        data-tab="grid">Grid Split</button>
+</div>
+
+<div id="tab-filters">
 
 <div id="dropzone">
   <div id="drop-label">
@@ -668,6 +822,72 @@
     <div id="filter-list"></div>
   </div>
 </div>
+
+</div><!-- #tab-filters -->
+
+<div id="tab-grid">
+
+  <div id="grid-dropzone">
+    <div id="grid-drop-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="2"/>
+        <line x1="8"  y1="5" x2="8"  y2="19"/>
+        <line x1="16" y1="5" x2="16" y2="19"/>
+      </svg>
+      <p>Drop a wide image to split</p>
+    </div>
+    <img id="grid-src-preview" alt="">
+    <button id="grid-delete-btn" title="Remove">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="grid-controls">
+    <div class="gctrl-group">
+      <span class="gctrl-label">Tiles</span>
+      <div class="gctrl-btns" id="grid-tile-btns">
+        <button class="gctrl-btn active" data-n="3">3</button>
+        <button class="gctrl-btn"        data-n="2">2</button>
+        <button class="gctrl-btn"        data-n="4">4</button>
+        <button class="gctrl-btn"        data-n="6">6</button>
+      </div>
+    </div>
+    <div class="gctrl-group">
+      <span class="gctrl-label">Ratio</span>
+      <div class="gctrl-btns" id="grid-ratio-btns">
+        <button class="gctrl-btn active" data-ratio="9:16">9:16</button>
+        <button class="gctrl-btn"        data-ratio="1:1">1:1</button>
+        <button class="gctrl-btn"        data-ratio="4:3">4:3</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="grid-preview-wrap">
+    <div id="grid-preview"></div>
+  </div>
+
+  <div id="grid-footer">
+    <span id="grid-info"></span>
+    <button id="grid-dl-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v13M5 15l7 7 7-7"/>
+        <path d="M3 21h18" opacity="0.4"/>
+      </svg>
+      Download ZIP
+    </button>
+  </div>
+
+</div><!-- #tab-grid -->
+
+<input type="file" id="grid-file-input" accept="image/*">
 
 <div id="all-panel">
   <div id="all-panel-inner">
@@ -1905,7 +2125,185 @@ function fBloom(imageData) {
     d[i + 2] = clamp(b);
   }
 }
+
+// ══ TAB SWITCHING ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const t = btn.dataset.tab;
+    document.getElementById('tab-filters').style.display = t === 'filters' ? 'flex' : 'none';
+    document.getElementById('tab-grid').style.display    = t === 'grid'    ? 'flex' : 'none';
+  });
+});
+
+// ══ GRID SPLIT ══════════════════════════════════════════════════════════════
+let gridSrc    = null;
+let gridN      = 3;
+let gridRatioW = 9;
+let gridRatioH = 16;
+
+const gridDropzone   = document.getElementById('grid-dropzone');
+const gridDropLabel  = document.getElementById('grid-drop-label');
+const gridSrcPreview = document.getElementById('grid-src-preview');
+const gridDeleteBtn  = document.getElementById('grid-delete-btn');
+const gridFileInput  = document.getElementById('grid-file-input');
+const gridPreviewWrap = document.getElementById('grid-preview-wrap');
+const gridPreviewEl  = document.getElementById('grid-preview');
+const gridFooter     = document.getElementById('grid-footer');
+const gridInfoEl     = document.getElementById('grid-info');
+const gridDlBtn      = document.getElementById('grid-dl-btn');
+
+// Upload
+gridDropzone.addEventListener('click', () => { if (!gridSrc) gridFileInput.click(); });
+gridFileInput.addEventListener('change', e => gridLoadFile(e.target.files[0]));
+gridDropzone.addEventListener('dragover',  e => { e.preventDefault(); gridDropzone.classList.add('drag-over'); });
+gridDropzone.addEventListener('dragleave', () => gridDropzone.classList.remove('drag-over'));
+gridDropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  gridDropzone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f?.type.startsWith('image/')) gridLoadFile(f);
+});
+
+function gridLoadFile(file) {
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img  = new Image();
+  img.onload = () => {
+    gridSrc = img;
+    URL.revokeObjectURL(url);
+    gridSrcPreview.src     = img.src;
+    gridSrcPreview.style.display = 'block';
+    gridDropLabel.style.display  = 'none';
+    gridDeleteBtn.style.display  = 'flex';
+    gridDropzone.classList.add('has-image');
+    gridRender();
+  };
+  img.src = url;
+}
+
+gridDeleteBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  gridSrc = null;
+  gridSrcPreview.src           = '';
+  gridSrcPreview.style.display = 'none';
+  gridDropLabel.style.display  = '';
+  gridDeleteBtn.style.display  = 'none';
+  gridDropzone.classList.remove('has-image');
+  gridPreviewWrap.style.display = 'none';
+  gridFooter.style.display      = 'none';
+  gridPreviewEl.innerHTML       = '';
+  gridFileInput.value           = '';
+});
+
+// Tile count buttons
+document.querySelectorAll('#grid-tile-btns .gctrl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#grid-tile-btns .gctrl-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gridN = +btn.dataset.n;
+    if (gridSrc) gridRender();
+  });
+});
+
+// Ratio buttons
+document.querySelectorAll('#grid-ratio-btns .gctrl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#grid-ratio-btns .gctrl-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const [rw, rh] = btn.dataset.ratio.split(':').map(Number);
+    gridRatioW = rw; gridRatioH = rh;
+    if (gridSrc) gridRender();
+  });
+});
+
+function gridCropParams() {
+  const imgW = gridSrc.naturalWidth  || gridSrc.width;
+  const imgH = gridSrc.naturalHeight || gridSrc.height;
+  const totalAR = (gridRatioW * gridN) / gridRatioH;
+  const imgAR   = imgW / imgH;
+  let srcX, srcY, srcW, srcH;
+  if (imgAR >= totalAR) {
+    srcH = imgH;
+    srcW = Math.round(imgH * totalAR);
+    srcX = Math.round((imgW - srcW) / 2);
+    srcY = 0;
+  } else {
+    srcW = imgW;
+    srcH = Math.round(imgW / totalAR);
+    srcX = 0;
+    srcY = Math.round((imgH - srcH) / 2);
+  }
+  return { srcX, srcY, srcW, srcH,
+           tileW: Math.round(srcW / gridN), tileH: srcH };
+}
+
+function gridRender() {
+  if (!gridSrc) return;
+  const { srcX, srcY, srcW, srcH, tileW, tileH } = gridCropParams();
+
+  // Compute display tile dimensions (fit N tiles in container width, cap height at 280)
+  const containerW = gridPreviewWrap.offsetWidth || 600;
+  const GAP        = 3;
+  let dispW = Math.floor((containerW - (gridN - 1) * GAP) / gridN);
+  let dispH = Math.floor(dispW * gridRatioH / gridRatioW);
+  if (dispH > 280) { dispH = 280; dispW = Math.floor(dispH * gridRatioW / gridRatioH); }
+
+  // Render all tiles onto one wide temp canvas then slice
+  const tmpC   = document.createElement('canvas');
+  tmpC.width   = dispW * gridN;
+  tmpC.height  = dispH;
+  const tmpCtx = tmpC.getContext('2d');
+  tmpCtx.drawImage(gridSrc, srcX, srcY, srcW, srcH, 0, 0, dispW * gridN, dispH);
+
+  gridPreviewEl.innerHTML = '';
+  for (let i = 0; i < gridN; i++) {
+    const tc   = document.createElement('canvas');
+    tc.width   = dispW; tc.height = dispH;
+    tc.className = 'grid-tile-canvas';
+    tc.getContext('2d').drawImage(tmpC, i * dispW, 0, dispW, dispH, 0, 0, dispW, dispH);
+    const wrap    = document.createElement('div');
+    wrap.className = 'grid-tile-wrap';
+    const num     = document.createElement('span');
+    num.className = 'grid-tile-num';
+    num.textContent = i + 1;
+    wrap.appendChild(tc);
+    wrap.appendChild(num);
+    gridPreviewEl.appendChild(wrap);
+  }
+
+  gridPreviewWrap.style.display = '';
+  gridFooter.style.display      = 'flex';
+  gridInfoEl.textContent = `${gridN} tiles · ${tileW}×${tileH}px each`;
+}
+
+gridDlBtn.addEventListener('click', async () => {
+  if (!gridSrc || typeof JSZip === 'undefined') return;
+  const { srcX, srcY, srcW, srcH, tileW, tileH } = gridCropParams();
+  const zip = new JSZip();
+  const promises = [];
+  for (let i = 0; i < gridN; i++) {
+    const c   = document.createElement('canvas');
+    c.width   = tileW; c.height = tileH;
+    c.getContext('2d').drawImage(gridSrc, srcX + i * tileW, srcY, tileW, tileH, 0, 0, tileW, tileH);
+    promises.push(
+      new Promise(res => c.toBlob(res, 'image/jpeg', 0.92))
+        .then(blob => zip.file(`tile_${i + 1}.jpg`, blob))
+    );
+  }
+  await Promise.all(promises);
+  const content = await zip.generateAsync({ type: 'blob' });
+  const a       = document.createElement('a');
+  a.download    = 'grid-split.zip';
+  a.href        = URL.createObjectURL(content);
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+window.addEventListener('resize', () => { if (gridSrc) gridRender(); });
 </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
