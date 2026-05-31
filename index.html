@@ -560,7 +560,7 @@
     /* ── Grid Split ───────────────────────────────────────── */
     #grid-dropzone {
       width: min(600px, 100vw - 32px);
-      height: 190px;
+      height: 260px;
       border: 1.5px dashed #252525;
       border-radius: 16px;
       background: #111;
@@ -581,11 +581,10 @@
     }
     #grid-drop-label svg { width: 42px; height: 42px; }
     #grid-drop-label p   { font-size: 0.78rem; letter-spacing: 0.06em; }
-    #grid-src-preview {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 100%; max-height: 100%;
-      display: none; object-fit: contain; pointer-events: none;
+    #grid-overlay-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: none; pointer-events: none;
     }
     #grid-delete-btn {
       position: absolute; top: 10px; right: 10px;
@@ -626,28 +625,6 @@
     .gctrl-btn:hover  { border-color: #555; color: #ccc; }
     .gctrl-btn.active { border-color: #aaa; color: #fff; }
 
-    #grid-preview-wrap {
-      width: min(600px, 100vw - 32px);
-      margin-top: 16px;
-      display: none;
-    }
-    #grid-preview {
-      display: flex; gap: 3px;
-      overflow-x: auto; scrollbar-width: none;
-      padding: 2px 2px 8px;
-    }
-    #grid-preview::-webkit-scrollbar { display: none; }
-    .grid-tile-wrap { flex-shrink: 0; position: relative; }
-    .grid-tile-canvas { display: block; border-radius: 5px; }
-    .grid-tile-num {
-      position: absolute; bottom: 8px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.5);
-      color: rgba(255,255,255,0.75);
-      font-size: 0.58rem; letter-spacing: 0.04em;
-      padding: 2px 7px; border-radius: 3px;
-      pointer-events: none;
-    }
 
     #grid-footer {
       width: min(600px, 100vw - 32px);
@@ -837,7 +814,7 @@
       </svg>
       <p>Drop a wide image to split</p>
     </div>
-    <img id="grid-src-preview" alt="">
+    <canvas id="grid-overlay-canvas"></canvas>
     <button id="grid-delete-btn" title="Remove">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
@@ -867,10 +844,6 @@
         <button class="gctrl-btn"        data-ratio="4:3">4:3</button>
       </div>
     </div>
-  </div>
-
-  <div id="grid-preview-wrap">
-    <div id="grid-preview"></div>
   </div>
 
   <div id="grid-footer">
@@ -2143,16 +2116,15 @@ let gridN      = 3;
 let gridRatioW = 9;
 let gridRatioH = 16;
 
-const gridDropzone   = document.getElementById('grid-dropzone');
-const gridDropLabel  = document.getElementById('grid-drop-label');
-const gridSrcPreview = document.getElementById('grid-src-preview');
-const gridDeleteBtn  = document.getElementById('grid-delete-btn');
-const gridFileInput  = document.getElementById('grid-file-input');
-const gridPreviewWrap = document.getElementById('grid-preview-wrap');
-const gridPreviewEl  = document.getElementById('grid-preview');
-const gridFooter     = document.getElementById('grid-footer');
-const gridInfoEl     = document.getElementById('grid-info');
-const gridDlBtn      = document.getElementById('grid-dl-btn');
+const gridDropzone    = document.getElementById('grid-dropzone');
+const gridDropLabel   = document.getElementById('grid-drop-label');
+const gridOverlayCanvas = document.getElementById('grid-overlay-canvas');
+const gridOCtx        = gridOverlayCanvas.getContext('2d');
+const gridDeleteBtn   = document.getElementById('grid-delete-btn');
+const gridFileInput   = document.getElementById('grid-file-input');
+const gridFooter      = document.getElementById('grid-footer');
+const gridInfoEl      = document.getElementById('grid-info');
+const gridDlBtn       = document.getElementById('grid-dl-btn');
 
 // Upload
 gridDropzone.addEventListener('click', () => { if (!gridSrc) gridFileInput.click(); });
@@ -2173,10 +2145,9 @@ function gridLoadFile(file) {
   img.onload = () => {
     gridSrc = img;
     URL.revokeObjectURL(url);
-    gridSrcPreview.src     = img.src;
-    gridSrcPreview.style.display = 'block';
-    gridDropLabel.style.display  = 'none';
-    gridDeleteBtn.style.display  = 'flex';
+    gridDropLabel.style.display       = 'none';
+    gridOverlayCanvas.style.display   = 'block';
+    gridDeleteBtn.style.display       = 'flex';
     gridDropzone.classList.add('has-image');
     gridRender();
   };
@@ -2186,15 +2157,13 @@ function gridLoadFile(file) {
 gridDeleteBtn.addEventListener('click', e => {
   e.stopPropagation();
   gridSrc = null;
-  gridSrcPreview.src           = '';
-  gridSrcPreview.style.display = 'none';
-  gridDropLabel.style.display  = '';
-  gridDeleteBtn.style.display  = 'none';
+  gridOCtx.clearRect(0, 0, gridOverlayCanvas.width, gridOverlayCanvas.height);
+  gridOverlayCanvas.style.display = 'none';
+  gridDropLabel.style.display     = '';
+  gridDeleteBtn.style.display     = 'none';
   gridDropzone.classList.remove('has-image');
-  gridPreviewWrap.style.display = 'none';
-  gridFooter.style.display      = 'none';
-  gridPreviewEl.innerHTML       = '';
-  gridFileInput.value           = '';
+  gridFooter.style.display        = 'none';
+  gridFileInput.value             = '';
 });
 
 // Tile count buttons
@@ -2241,47 +2210,92 @@ function gridCropParams() {
 
 function gridRender() {
   if (!gridSrc) return;
+
+  // Sync canvas pixel dimensions to its CSS display size
+  gridOverlayCanvas.width  = gridDropzone.offsetWidth;
+  gridOverlayCanvas.height = gridDropzone.offsetHeight;
+  const W = gridOverlayCanvas.width, H = gridOverlayCanvas.height;
+  const ctx = gridOCtx;
+
+  // Draw source image scaled to fit (contain)
+  const imgW = gridSrc.naturalWidth  || gridSrc.width;
+  const imgH = gridSrc.naturalHeight || gridSrc.height;
+  const scale  = Math.min(W / imgW, H / imgH);
+  const dispW  = imgW * scale, dispH = imgH * scale;
+  const imgOffX = (W - dispW) / 2, imgOffY = (H - dispH) / 2;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(gridSrc, imgOffX, imgOffY, dispW, dispH);
+
+  // Map crop region to display coords
   const { srcX, srcY, srcW, srcH, tileW, tileH } = gridCropParams();
+  const cx  = imgOffX + srcX * scale;
+  const cy  = imgOffY + srcY * scale;
+  const cw  = srcW * scale;
+  const ch  = srcH * scale;
+  const tdw = cw / gridN;   // tile display width
 
-  // Compute display tile dimensions (fit N tiles in container width, cap height at 280)
-  const containerW = gridPreviewWrap.offsetWidth || 600;
-  const GAP        = 3;
-  let dispW = Math.floor((containerW - (gridN - 1) * GAP) / gridN);
-  let dispH = Math.floor(dispW * gridRatioH / gridRatioW);
-  if (dispH > 280) { dispH = 280; dispW = Math.floor(dispH * gridRatioW / gridRatioH); }
+  // Dim the parts outside the crop region
+  ctx.fillStyle = 'rgba(0,0,0,0.52)';
+  if (cx > imgOffX)           ctx.fillRect(imgOffX,  imgOffY, cx - imgOffX,                   dispH);
+  if (cx + cw < imgOffX + dispW) ctx.fillRect(cx + cw, imgOffY, (imgOffX + dispW) - (cx + cw), dispH);
+  if (cy > imgOffY)           ctx.fillRect(cx,  imgOffY, cw, cy - imgOffY);
+  if (cy + ch < imgOffY + dispH) ctx.fillRect(cx, cy + ch, cw, (imgOffY + dispH) - (cy + ch));
 
-  // Render all tiles onto one wide temp canvas then slice
-  const tmpC   = document.createElement('canvas');
-  tmpC.width   = dispW * gridN;
-  tmpC.height  = dispH;
-  const tmpCtx = tmpC.getContext('2d');
-  tmpCtx.drawImage(gridSrc, srcX, srcY, srcW, srcH, 0, 0, dispW * gridN, dispH);
+  // Crop border
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth   = 1;
+  ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
 
-  gridPreviewEl.innerHTML = '';
-  for (let i = 0; i < gridN; i++) {
-    const tc   = document.createElement('canvas');
-    tc.width   = dispW; tc.height = dispH;
-    tc.className = 'grid-tile-canvas';
-    tc.getContext('2d').drawImage(tmpC, i * dispW, 0, dispW, dispH, 0, 0, dispW, dispH);
-    const wrap    = document.createElement('div');
-    wrap.className = 'grid-tile-wrap';
-    const num     = document.createElement('span');
-    num.className = 'grid-tile-num';
-    num.textContent = i + 1;
-    wrap.appendChild(tc);
-    wrap.appendChild(num);
-    gridPreviewEl.appendChild(wrap);
+  // Cut lines between tiles
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth   = 1.5;
+  ctx.setLineDash([]);
+  for (let i = 1; i < gridN; i++) {
+    const lx = Math.round(cx + i * tdw) + 0.5;
+    ctx.beginPath();
+    ctx.moveTo(lx, cy);
+    ctx.lineTo(lx, cy + ch);
+    ctx.stroke();
   }
 
-  gridPreviewWrap.style.display = '';
-  gridFooter.style.display      = 'flex';
-  gridInfoEl.textContent = `${gridN} tiles · ${tileW}×${tileH}px each`;
+  // Tile number labels (bottom-center of each tile)
+  ctx.font         = `bold ${Math.max(10, Math.round(ch * 0.08))}px -apple-system, sans-serif`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  const fontSize   = Math.max(10, Math.round(ch * 0.08));
+  const padX = fontSize * 1.2, padY = fontSize * 0.55;
+  for (let i = 0; i < gridN; i++) {
+    const lx  = cx + (i + 0.5) * tdw;
+    const ly  = cy + ch * 0.5;
+    const txt = String(i + 1);
+    const tw  = ctx.measureText(txt).width;
+    // Pill background
+    ctx.fillStyle = 'rgba(0,0,0,0.52)';
+    const rx = lx - tw / 2 - padX / 2, ry = ly - padY;
+    const rw2 = tw + padX, rh2 = padY * 2;
+    const r   = rh2 / 2;
+    ctx.beginPath();
+    ctx.moveTo(rx + r, ry);
+    ctx.arcTo(rx + rw2, ry, rx + rw2, ry + rh2, r);
+    ctx.arcTo(rx + rw2, ry + rh2, rx, ry + rh2, r);
+    ctx.arcTo(rx, ry + rh2, rx, ry, r);
+    ctx.arcTo(rx, ry, rx + rw2, ry, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    ctx.fillText(txt, lx, ly);
+  }
+
+  // Footer info
+  gridFooter.style.display  = 'flex';
+  gridInfoEl.textContent    = `${gridN} tiles · ${tileW} × ${tileH}px each`;
 }
 
 gridDlBtn.addEventListener('click', async () => {
   if (!gridSrc || typeof JSZip === 'undefined') return;
   const { srcX, srcY, srcW, srcH, tileW, tileH } = gridCropParams();
-  const zip = new JSZip();
+  const zip      = new JSZip();
   const promises = [];
   for (let i = 0; i < gridN; i++) {
     const c   = document.createElement('canvas');
