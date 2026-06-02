@@ -475,8 +475,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // Add new entries at the top. version must match CHANGELOG[0].version for dot logic.
 const CHANGELOG = [
   {
+    version: '1.4', date: 'Jun 2026',
+    notes: [
+      'Export size presets — Instagram, Twitter/X, LinkedIn, YouTube',
+      'Speed effect tool with radial zoom blur + Apply',
+      'Undo / Redo — full history up to 20 steps',
+      'Apply Filter button — stack filters on top of each other',
+      'Watermark Apply — bake watermark into image',
+      'Real-time RGB histogram panel (collapsible)',
+    ]
+  },
+  {
     version: '1.3', date: 'Jun 2026',
-    notes: ['Watermark tool — text, opacity, 7 positions, italic font', 'CSS/JS split into separate files', 'CLAUDE.md project docs']
+    notes: ['Watermark tool — text, opacity, 7 positions, italic font', 'CSS/JS split into separate files']
   },
   {
     version: '1.2', date: 'May 2026',
