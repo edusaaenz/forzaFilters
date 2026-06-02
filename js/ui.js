@@ -279,6 +279,61 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ── Changelog ─────────────────────────────────────────────────────────────
+// Add new entries at the top. version must match CHANGELOG[0].version for dot logic.
+const CHANGELOG = [
+  {
+    version: '1.3', date: 'Jun 2026',
+    notes: ['Watermark tool — text, opacity, 7 positions, italic font', 'CSS/JS split into separate files', 'CLAUDE.md project docs']
+  },
+  {
+    version: '1.2', date: 'May 2026',
+    notes: ['Grid Split for Instagram carousels', 'Tile preview strip', 'ZIP download']
+  },
+  {
+    version: '1.1', date: 'May 2026',
+    notes: ['Before/after compare slider', 'Filter intensity slider', 'Crop with aspect ratios', 'Rotate & flip']
+  },
+  {
+    version: '1.0', date: 'May 2026',
+    notes: ['16 built-in filters', 'Custom filter presets', 'Full-resolution PNG download']
+  },
+];
+
+const CHANGELOG_KEY = 'forza_changelog_read';
+const changelogBtn  = document.getElementById('changelog-btn');
+const changelogDot  = document.getElementById('changelog-dot');
+const changelogDrop = document.getElementById('changelog-dropdown');
+
+(function initChangelog() {
+  changelogDrop.innerHTML =
+    '<div class="cl-title">What\'s new</div>' +
+    CHANGELOG.map(e =>
+      `<div class="cl-entry">
+        <div class="cl-version">v${e.version}<span class="cl-date">${e.date}</span></div>
+        <ul class="cl-notes">${e.notes.map(n => `<li>${n}</li>`).join('')}</ul>
+      </div>`
+    ).join('');
+  if (localStorage.getItem(CHANGELOG_KEY) !== CHANGELOG[0].version) {
+    changelogDot.classList.add('visible');
+  }
+})();
+
+changelogBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  changelogDrop.classList.toggle('open');
+  if (changelogDrop.classList.contains('open')) {
+    localStorage.setItem(CHANGELOG_KEY, CHANGELOG[0].version);
+    changelogDot.classList.remove('visible');
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!changelogDrop.contains(e.target) && e.target !== changelogBtn) {
+    changelogDrop.classList.remove('open');
+  }
+});
+
 // ── Filter strip drag-scroll ───────────────────────────────────────────────
 {
   const strip = document.getElementById('filter-strip');
