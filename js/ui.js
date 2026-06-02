@@ -26,6 +26,119 @@ let srcImage        = null;
 let activeId        = 'original';
 let customPresets   = [];
 let filterIntensity = 100;
+let undoStack       = [];
+let redoStack       = [];
+
+// ── Histogram ─────────────────────────────────────────────────────────────
+const histogramWrap   = document.getElementById('histogram-wrap');
+const histogramCanvas = document.getElementById('histogram-canvas');
+const hCtx            = histogramCanvas.getContext('2d');
+const histogramToggle = document.getElementById('histogram-toggle');
+let   histCollapsed   = false;
+
+histogramToggle.addEventListener('click', () => {
+  histCollapsed = !histCollapsed;
+  histogramWrap.classList.toggle('collapsed', histCollapsed);
+  histogramToggle.textContent = histCollapsed ? '▸' : '▾';
+});
+
+const histTooltip  = document.getElementById('hist-tooltip');
+const histHelpBtn  = document.getElementById('hist-help-btn');
+histHelpBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  histTooltip.classList.toggle('open');
+});
+document.addEventListener('click', () => histTooltip.classList.remove('open'));
+
+function renderHistogram() {
+  if (!srcImage || histCollapsed) return;
+  const W = histogramCanvas.width;
+  const H = histogramCanvas.height;
+  const pixels = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height).data;
+
+  const r = new Float32Array(256);
+  const g = new Float32Array(256);
+  const b = new Float32Array(256);
+  for (let i = 0; i < pixels.length; i += 4) {
+    r[pixels[i]]++; g[pixels[i+1]]++; b[pixels[i+2]]++;
+  }
+
+  let max = 1;
+  for (let i = 0; i < 256; i++) {
+    if (r[i] > max) max = r[i];
+    if (g[i] > max) max = g[i];
+    if (b[i] > max) max = b[i];
+  }
+
+  hCtx.clearRect(0, 0, W, H);
+
+  const channels = [
+    { ch: r, fill: 'rgba(255,70,70,0.55)'  },
+    { ch: g, fill: 'rgba(60,200,60,0.55)'  },
+    { ch: b, fill: 'rgba(60,120,255,0.55)' },
+  ];
+  for (const { ch, fill } of channels) {
+    hCtx.beginPath();
+    hCtx.moveTo(0, H);
+    for (let i = 0; i < 256; i++) {
+      hCtx.lineTo(i * W / 255, H - (ch[i] / max) * H);
+    }
+    hCtx.lineTo(W, H);
+    hCtx.closePath();
+    hCtx.fillStyle = fill;
+    hCtx.fill();
+  }
+}
+
+// ── Undo / Redo ────────────────────────────────────────────────────────────
+const undoBtn = document.getElementById('undo-btn');
+const redoBtn = document.getElementById('redo-btn');
+
+function snapshotImage() {
+  const w = srcImage.naturalWidth || srcImage.width;
+  const h = srcImage.naturalHeight || srcImage.height;
+  const snap = document.createElement('canvas');
+  snap.width = w; snap.height = h;
+  snap.getContext('2d').drawImage(srcImage, 0, 0);
+  return snap;
+}
+
+function pushUndo() {
+  if (!srcImage) return;
+  undoStack.push(snapshotImage());
+  if (undoStack.length > 20) undoStack.shift();
+  redoStack = [];
+  undoBtn.classList.add('visible');
+  redoBtn.classList.remove('visible');
+}
+
+function restoreState(snap) {
+  srcImage = snap;
+  activeId = 'original';
+  filterIntensity = 100; intensitySlider.value = 100; intensityVal.textContent = '100%';
+  applyFilterBtn.classList.remove('visible');
+  document.querySelectorAll('.filter-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === 'original')
+  );
+  renderThumbs();
+  renderPreview('original');
+}
+
+undoBtn.addEventListener('click', () => {
+  if (!undoStack.length) return;
+  redoStack.push(snapshotImage());
+  redoBtn.classList.add('visible');
+  restoreState(undoStack.pop());
+  if (!undoStack.length) undoBtn.classList.remove('visible');
+});
+
+redoBtn.addEventListener('click', () => {
+  if (!redoStack.length) return;
+  undoStack.push(snapshotImage());
+  undoBtn.classList.add('visible');
+  restoreState(redoStack.pop());
+  if (!redoStack.length) redoBtn.classList.remove('visible');
+});
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const dropzone        = document.getElementById('dropzone');
@@ -33,6 +146,7 @@ const dropLabel       = document.getElementById('drop-label');
 const previewCanvas   = document.getElementById('preview-canvas');
 const pCtx            = previewCanvas.getContext('2d', { willReadFrequently: true });
 const fileInput       = document.getElementById('file-input');
+const downloadWrap    = document.getElementById('download-wrap');
 const downloadBtn     = document.getElementById('download-btn');
 const viewAllBtn      = document.getElementById('view-all-btn');
 const deleteBtn       = document.getElementById('delete-btn');
@@ -59,6 +173,7 @@ const intensityVal    = document.getElementById('intensity-val');
 const cropBar         = document.getElementById('crop-bar');
 const cropCancel      = document.getElementById('crop-cancel');
 const cropApply       = document.getElementById('crop-apply');
+const applyFilterBtn  = document.getElementById('apply-filter-btn');
 const wmBtn           = document.getElementById('wm-btn');
 const wmBar           = document.getElementById('watermark-bar');
 const wmTextInput     = document.getElementById('wm-text-input');
@@ -106,14 +221,16 @@ function loadFile(file) {
     renderPreview(activeId);
     dropLabel.style.display     = 'none';
     previewCanvas.style.display = 'block';
-    downloadBtn.style.display   = 'flex';
+    downloadWrap.classList.add('visible');
     viewAllBtn.style.display    = 'flex';
     deleteBtn.style.display     = 'flex';
     adjustBtn.style.display     = 'flex';
     compareBtn.style.display    = 'flex';
     intensityBar.style.display  = 'flex';
     [cropBtn, rotLBtn, rotRBtn, flipHBtn, flipVBtn].forEach(b => b.style.display = 'flex');
-    wmBtn.style.display = 'flex';
+    wmBtn.style.display    = 'flex';
+    speedBtn.style.display = 'flex';
+    histogramWrap.classList.add('visible');
     dropzone.classList.add('has-image');
   };
   img.src = url;
@@ -126,7 +243,7 @@ deleteBtn.addEventListener('click', e => {
   activeId    = 'original';
   previewCanvas.style.display = 'none';
   dropLabel.style.display     = '';
-  downloadBtn.style.display   = 'none';
+  downloadWrap.classList.remove('visible', 'open');
   viewAllBtn.style.display    = 'none';
   deleteBtn.style.display     = 'none';
   adjustBtn.style.display     = 'none';
@@ -135,6 +252,12 @@ deleteBtn.addEventListener('click', e => {
   [cropBtn, rotLBtn, rotRBtn, flipHBtn, flipVBtn].forEach(b => b.style.display = 'none');
   wmBtn.style.display = 'none';
   wmActive = false; wmBtn.classList.remove('active'); wmBar.style.display = 'none';
+  exitSpeedMode(); speedBtn.style.display = 'none';
+  histogramWrap.classList.remove('visible');
+  hCtx.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
+  undoStack = []; undoBtn.classList.remove('visible');
+  redoStack = []; redoBtn.classList.remove('visible');
+  applyFilterBtn.classList.remove('visible');
   compareMode = false; compareBtn.classList.remove('active');
   exitCropMode(false);
   filterIntensity = 100; intensitySlider.value = 100; intensityVal.textContent = '100%';
@@ -226,7 +349,12 @@ function renderPreview(filterId) {
     pCtx.drawImage(srcImage, 0, 0, w, h);
     pCtx.globalAlpha = 1;
   }
+  if (speedMode) {
+    applyZoomBlur(pCtx, w, h, speedCX * w, speedCY * h, speedIntensity);
+    drawSpeedHandle(pCtx, speedCX * w, speedCY * h);
+  }
   if (wmActive && wmTextInput && wmTextInput.value.trim()) drawWatermark(pCtx, w, h);
+  renderHistogram();
 }
 
 function selectFilter(id) {
@@ -234,32 +362,96 @@ function selectFilter(id) {
   document.querySelectorAll('.filter-item').forEach(el =>
     el.classList.toggle('active', el.dataset.id === id)
   );
+  applyFilterBtn.classList.toggle('visible', !!(srcImage && id !== 'original'));
   renderPreview(id);
 }
 
-// ── Download ───────────────────────────────────────────────────────────────
-downloadBtn.addEventListener('click', () => {
-  if (!srcImage) return;
-  const w   = srcImage.naturalWidth  || srcImage.width;
-  const h   = srcImage.naturalHeight || srcImage.height;
-  const ec  = document.createElement('canvas');
-  ec.width  = w; ec.height = h;
+applyFilterBtn.addEventListener('click', () => {
+  if (!srcImage || activeId === 'original') return;
+  pushUndo();
+  const w = srcImage.naturalWidth || srcImage.width;
+  const h = srcImage.naturalHeight || srcImage.height;
+  const ec = document.createElement('canvas');
+  ec.width = w; ec.height = h;
   const ctx = ec.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(srcImage, 0, 0, w, h);
   const id = ctx.getImageData(0, 0, w, h);
   runFilter(id, activeId, w, h);
   ctx.putImageData(id, 0, 0);
   runOverlay(ctx, activeId, w, h);
-  if (filterIntensity < 100 && activeId !== 'original') {
+  if (filterIntensity < 100) {
     ctx.globalAlpha = 1 - filterIntensity / 100;
     ctx.drawImage(srcImage, 0, 0, w, h);
     ctx.globalAlpha = 1;
   }
+  srcImage = ec;
+  activeId = 'original';
+  filterIntensity = 100; intensitySlider.value = 100; intensityVal.textContent = '100%';
+  applyFilterBtn.classList.remove('visible');
+  document.querySelectorAll('.filter-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === 'original')
+  );
+  renderThumbs();
+  renderPreview('original');
+});
+
+// ── Download ───────────────────────────────────────────────────────────────
+function doDownload(targetW, targetH) {
+  if (!srcImage) return;
+  const imgW = srcImage.naturalWidth  || srcImage.width;
+  const imgH = srcImage.naturalHeight || srcImage.height;
+  const w = targetW || imgW;
+  const h = targetH || imgH;
+  const ec  = document.createElement('canvas');
+  ec.width  = w; ec.height = h;
+  const ctx = ec.getContext('2d', { willReadFrequently: true });
+  if (targetW && targetH) {
+    const scale = Math.max(w / imgW, h / imgH);
+    const sw = w / scale, sh = h / scale;
+    const sx = (imgW - sw) / 2, sy = (imgH - sh) / 2;
+    ctx.drawImage(srcImage, sx, sy, sw, sh, 0, 0, w, h);
+  } else {
+    ctx.drawImage(srcImage, 0, 0, w, h);
+  }
+  const id = ctx.getImageData(0, 0, w, h);
+  runFilter(id, activeId, w, h);
+  ctx.putImageData(id, 0, 0);
+  runOverlay(ctx, activeId, w, h);
+  if (filterIntensity < 100 && activeId !== 'original') {
+    ctx.globalAlpha = 1 - filterIntensity / 100;
+    if (targetW && targetH) {
+      const scale = Math.max(w / imgW, h / imgH);
+      const sw = w / scale, sh = h / scale;
+      const sx = (imgW - sw) / 2, sy = (imgH - sh) / 2;
+      ctx.drawImage(srcImage, sx, sy, sw, sh, 0, 0, w, h);
+    } else {
+      ctx.drawImage(srcImage, 0, 0, w, h);
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (speedMode) applyZoomBlur(ctx, w, h, speedCX * w, speedCY * h, speedIntensity);
   if (wmActive && wmTextInput.value.trim()) drawWatermark(ctx, w, h);
   const a    = document.createElement('a');
   a.download = `forza-${activeId}.png`;
   a.href     = ec.toDataURL('image/png');
   a.click();
+}
+
+downloadBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (!srcImage) return;
+  downloadWrap.classList.toggle('open');
+});
+
+document.querySelectorAll('.export-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    downloadWrap.classList.remove('open');
+    doDownload(+btn.dataset.w, +btn.dataset.h);
+  });
+});
+
+document.addEventListener('click', e => {
+  if (!downloadWrap.contains(e.target)) downloadWrap.classList.remove('open');
 });
 
 window.addEventListener('resize', () => {

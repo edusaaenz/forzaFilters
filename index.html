@@ -25,6 +25,20 @@
     <button class="tab-btn"        data-tab="grid">Grid Split</button>
   </div>
   <div class="hdr-actions">
+    <button id="redo-btn" title="Redo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 14l5-5-5-5"/>
+        <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>
+      </svg>
+    </button>
+    <button id="undo-btn" title="Undo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 14L4 9l5-5"/>
+        <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>
+      </svg>
+    </button>
     <div id="changelog-wrap">
       <button id="changelog-btn" title="What's new">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -36,14 +50,30 @@
       <span id="changelog-dot"></span>
       <div id="changelog-dropdown"></div>
     </div>
-    <button id="download-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3v13M5 15l7 7 7-7"/>
-        <path d="M3 21h18" opacity="0.4"/>
-      </svg>
-      Download
-    </button>
+    <div id="download-wrap">
+      <button id="download-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v13M5 15l7 7 7-7"/>
+          <path d="M3 21h18" opacity="0.4"/>
+        </svg>
+        Download
+        <svg id="download-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="export-dropdown">
+        <button class="export-opt" data-w="0"    data-h="0"   >Original</button>
+        <div class="export-divider"></div>
+        <button class="export-opt" data-w="1080" data-h="1080">Instagram Post · 1080×1080</button>
+        <button class="export-opt" data-w="1080" data-h="1920">Instagram Story · 1080×1920</button>
+        <button class="export-opt" data-w="1200" data-h="675" >Twitter/X Post · 1200×675</button>
+        <button class="export-opt" data-w="1500" data-h="500" >Twitter/X Header · 1500×500</button>
+        <button class="export-opt" data-w="1584" data-h="396" >LinkedIn Cover · 1584×396</button>
+        <button class="export-opt" data-w="1280" data-h="720" >YouTube Thumbnail · 1280×720</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -139,6 +169,21 @@
         </svg>
         <span class="tool-label">Watermark</span>
       </button>
+      <button id="speed-btn" class="tool-btn" title="Speed effect">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="2"/>
+          <line x1="12" y1="12" x2="20" y2="5"/>
+          <line x1="12" y1="12" x2="20" y2="19"/>
+          <line x1="12" y1="12" x2="4"  y2="5"/>
+          <line x1="12" y1="12" x2="4"  y2="19"/>
+          <line x1="12" y1="12" x2="12" y2="2"/>
+          <line x1="12" y1="12" x2="12" y2="22"/>
+          <line x1="12" y1="12" x2="2"  y2="12"/>
+          <line x1="12" y1="12" x2="22" y2="12"/>
+        </svg>
+        <span class="tool-label">Speed</span>
+      </button>
     </div>
 
     <div class="sb-divider"></div>
@@ -150,6 +195,7 @@
         <input type="range" id="intensity-slider" min="0" max="100" value="100">
         <span id="intensity-val">100%</span>
       </div>
+      <button id="apply-filter-btn">Apply Filter</button>
     </div>
 
     <!-- Crop controls (shown in crop mode) -->
@@ -166,6 +212,20 @@
       <div id="crop-actions">
         <button id="crop-cancel">Cancel</button>
         <button id="crop-apply">Apply Crop</button>
+      </div>
+    </div>
+
+    <!-- Speed controls -->
+    <div id="speed-bar">
+      <span class="sb-label">Intensity</span>
+      <div class="wm-row">
+        <input type="range" id="speed-intensity" min="1" max="100" value="50">
+        <span id="speed-intensity-val">50%</span>
+      </div>
+      <span class="sb-label" style="padding-top:4px;font-size:0.65rem;color:#444">Drag image to move center</span>
+      <div id="speed-actions">
+        <button id="speed-cancel">Cancel</button>
+        <button id="speed-apply">Apply</button>
       </div>
     </div>
 
@@ -195,12 +255,32 @@
         <button id="wm-font-normal"  class="wm-pos-btn active" style="flex:1;font-size:0.68rem">Aa</button>
         <button id="wm-font-cursive" class="wm-pos-btn"        style="flex:1;font-style:italic;font-family:Georgia,serif;font-size:0.68rem">Aa</button>
       </div>
+      <div id="wm-actions">
+        <button id="wm-cancel">Cancel</button>
+        <button id="wm-apply">Apply</button>
+      </div>
     </div>
 
   </aside>
 
   <!-- Preview Area -->
   <div id="preview-area">
+    <div id="histogram-wrap">
+      <div id="histogram-header">
+        <span id="histogram-label">Histogram</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button id="hist-help-btn" title="What is this?">?</button>
+          <button id="histogram-toggle" title="Collapse">▾</button>
+        </div>
+      </div>
+      <div id="hist-tooltip">
+        <b>Left</b> = dark pixels &nbsp;·&nbsp; <b>Right</b> = bright pixels<br>
+        <b>Height</b> = how many pixels at that brightness<br>
+        <b>Colors</b> show red, green, blue channel distribution<br>
+        Peaks = dominant tones in your image
+      </div>
+      <canvas id="histogram-canvas" width="192" height="64"></canvas>
+    </div>
     <div id="dropzone">
       <div id="drop-label">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -39,6 +39,7 @@ intensitySlider.addEventListener('input', () => {
 // ── Rotate / Flip ──────────────────────────────────────────────────────────
 function applyTransform(type) {
   if (!srcImage) return;
+  pushUndo();
   const sw = srcImage.width, sh = srcImage.height;
   const c   = document.createElement('canvas');
   const ctx = c.getContext('2d');
@@ -324,6 +325,7 @@ function updateCropDrag(px, py) {
 
 function applyCrop() {
   if (!srcImage) return;
+  pushUndo();
   const sw = srcImage.width, sh = srcImage.height;
   const cx = Math.round(cropRect.x1 * sw);
   const cy = Math.round(cropRect.y1 * sh);
@@ -496,6 +498,44 @@ document.getElementById('wm-font-cursive').addEventListener('click', () => {
   if (srcImage) renderPreview(activeId);
 });
 
+document.getElementById('wm-cancel').addEventListener('click', () => {
+  wmActive = false;
+  wmBtn.classList.remove('active');
+  wmBar.style.display = 'none';
+  renderPreview(activeId);
+});
+
+document.getElementById('wm-apply').addEventListener('click', () => {
+  if (!srcImage || !wmTextInput.value.trim()) return;
+  pushUndo();
+  const w   = srcImage.naturalWidth  || srcImage.width;
+  const h   = srcImage.naturalHeight || srcImage.height;
+  const ec  = document.createElement('canvas');
+  ec.width  = w; ec.height = h;
+  const ctx = ec.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(srcImage, 0, 0, w, h);
+  const id = ctx.getImageData(0, 0, w, h);
+  runFilter(id, activeId, w, h);
+  ctx.putImageData(id, 0, 0);
+  runOverlay(ctx, activeId, w, h);
+  if (filterIntensity < 100 && activeId !== 'original') {
+    ctx.globalAlpha = 1 - filterIntensity / 100;
+    ctx.drawImage(srcImage, 0, 0, w, h);
+    ctx.globalAlpha = 1;
+  }
+  drawWatermark(ctx, w, h);
+  srcImage = ec;
+  activeId = 'original';
+  filterIntensity = 100; intensitySlider.value = 100; intensityVal.textContent = '100%';
+  wmActive = false; wmBtn.classList.remove('active'); wmBar.style.display = 'none';
+  wmTextInput.value = '';
+  document.querySelectorAll('.filter-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === 'original')
+  );
+  renderThumbs();
+  renderPreview('original');
+});
+
 function drawWatermark(ctx, w, h) {
   const text    = wmTextInput.value.trim();
   if (!text) return;
@@ -531,6 +571,166 @@ function drawWatermark(ctx, w, h) {
   ctx.shadowBlur   = size * 0.25;
   ctx.fillText(text, x, y);
   ctx.restore();
+}
+
+// ── Speed effect ───────────────────────────────────────────────────────────
+let speedMode      = false;
+let speedCX        = 0.5; // normalized 0–1
+let speedCY        = 0.5;
+let speedIntensity = 50;
+
+const speedBtn    = document.getElementById('speed-btn');
+const speedBar    = document.getElementById('speed-bar');
+const speedSlider = document.getElementById('speed-intensity');
+const speedValEl  = document.getElementById('speed-intensity-val');
+
+function applyZoomBlur(ctx, w, h, cx, cy, strength) {
+  const samples  = 18;
+  const maxScale = strength / 100 * 0.32;
+
+  // Snapshot source (isolate from any lingering shadow/blend state on ctx)
+  const tmp = document.createElement('canvas');
+  tmp.width = w; tmp.height = h;
+  const tmpCtx = tmp.getContext('2d');
+  tmpCtx.drawImage(ctx.canvas, 0, 0);
+
+  // Accumulate into a clean canvas using rolling average:
+  // i=0 → alpha 1.0, i=1 → 0.5, i=2 → 0.333 … gives equal-weight average
+  // of all samples without leaving under-covered transparent edges.
+  const acc = document.createElement('canvas');
+  acc.width = w; acc.height = h;
+  const accCtx = acc.getContext('2d');
+
+  for (let i = 0; i < samples; i++) {
+    const t = 1 - (i / (samples - 1)) * maxScale;
+    accCtx.save();
+    accCtx.globalAlpha  = i === 0 ? 1 : 1 / (i + 1);
+    accCtx.shadowColor  = 'transparent';
+    accCtx.shadowBlur   = 0;
+    accCtx.translate(cx, cy);
+    accCtx.scale(t, t);
+    accCtx.translate(-cx, -cy);
+    accCtx.drawImage(tmp, 0, 0);
+    accCtx.restore();
+  }
+
+  // Write result back, resetting any leftover state on ctx
+  ctx.save();
+  ctx.globalAlpha              = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.shadowColor              = 'transparent';
+  ctx.shadowBlur               = 0;
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(acc, 0, 0);
+  ctx.restore();
+}
+
+function drawSpeedHandle(ctx, cx, cy) {
+  const r = 8;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth   = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(cx - r * 1.8, cy); ctx.lineTo(cx + r * 1.8, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - r * 1.8); ctx.lineTo(cx, cy + r * 1.8); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+
+const speedCancel = document.getElementById('speed-cancel');
+const speedApply  = document.getElementById('speed-apply');
+
+function exitSpeedMode() {
+  speedMode = false;
+  speedBtn.classList.remove('active');
+  speedBar.style.display = 'none';
+  speedCX = 0.5; speedCY = 0.5;
+}
+
+speedBtn.addEventListener('click', () => {
+  speedMode = !speedMode;
+  speedBtn.classList.toggle('active', speedMode);
+  speedBar.style.display = speedMode ? 'flex' : 'none';
+  if (speedMode) {
+    if (cropMode) exitCropMode(true);
+    compareMode = false; compareBtn.classList.remove('active');
+    wmActive    = false; wmBtn.classList.remove('active'); wmBar.style.display = 'none';
+  }
+  renderPreview(activeId);
+});
+
+speedCancel.addEventListener('click', () => {
+  exitSpeedMode();
+  renderPreview(activeId);
+});
+
+speedApply.addEventListener('click', () => {
+  if (!srcImage) return;
+  pushUndo();
+  const imgW = srcImage.naturalWidth || srcImage.width;
+  const imgH = srcImage.naturalHeight || srcImage.height;
+  const ec   = document.createElement('canvas');
+  ec.width   = imgW; ec.height = imgH;
+  const ctx  = ec.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(srcImage, 0, 0, imgW, imgH);
+  const id = ctx.getImageData(0, 0, imgW, imgH);
+  runFilter(id, activeId, imgW, imgH);
+  ctx.putImageData(id, 0, 0);
+  runOverlay(ctx, activeId, imgW, imgH);
+  if (filterIntensity < 100 && activeId !== 'original') {
+    ctx.globalAlpha = 1 - filterIntensity / 100;
+    ctx.drawImage(srcImage, 0, 0, imgW, imgH);
+    ctx.globalAlpha = 1;
+  }
+  applyZoomBlur(ctx, imgW, imgH, speedCX * imgW, speedCY * imgH, speedIntensity);
+  srcImage  = ec;
+  activeId  = 'original';
+  filterIntensity = 100; intensitySlider.value = 100; intensityVal.textContent = '100%';
+  document.querySelectorAll('.filter-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === 'original')
+  );
+  exitSpeedMode();
+  renderThumbs();
+  renderPreview('original');
+});
+
+speedSlider.addEventListener('input', () => {
+  speedIntensity = +speedSlider.value;
+  speedValEl.textContent = speedIntensity + '%';
+  if (speedMode) renderPreview(activeId);
+});
+
+{
+  let dragging = false;
+
+  function speedSetPos(e) {
+    const rect = previewCanvas.getBoundingClientRect();
+    const cx   = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy   = e.touches ? e.touches[0].clientY : e.clientY;
+    speedCX = Math.max(0, Math.min(1, (cx - rect.left)  / rect.width));
+    speedCY = Math.max(0, Math.min(1, (cy - rect.top)   / rect.height));
+  }
+
+  previewCanvas.addEventListener('mousedown', e => {
+    if (!speedMode) return;
+    dragging = true; speedSetPos(e); renderPreview(activeId); e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging || !speedMode) return;
+    speedSetPos(e); renderPreview(activeId);
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  previewCanvas.addEventListener('touchstart', e => {
+    if (!speedMode) return;
+    dragging = true; speedSetPos(e); renderPreview(activeId);
+  }, { passive: true });
+  previewCanvas.addEventListener('touchmove', e => {
+    if (!dragging || !speedMode) return;
+    speedSetPos(e); renderPreview(activeId); e.preventDefault();
+  }, { passive: false });
+  previewCanvas.addEventListener('touchend', () => { dragging = false; });
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────

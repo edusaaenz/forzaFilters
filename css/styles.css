@@ -547,6 +547,149 @@ input[type=range].adj-sl::-moz-range-thumb {
 .wm-pos-btn:hover  { border-color: #444; color: #aaa; }
 .wm-pos-btn.active { border-color: #777; color: #ddd; }
 
+/* ── Histogram ────────────────────────────────────────── */
+#histogram-wrap {
+  display: none; position: absolute;
+  bottom: 14px; right: 14px; z-index: 10;
+  background: rgba(10,10,10,0.82);
+  border: 1px solid #2a2a2a; border-radius: 8px;
+  padding: 5px 6px 5px;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+#histogram-wrap.visible { display: block; }
+#histogram-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px;
+}
+#histogram-label {
+  font-size: 0.6rem; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: #555;
+}
+#histogram-toggle {
+  background: none; border: none; cursor: pointer;
+  color: #555; font-size: 0.75rem; line-height: 1;
+  padding: 0; transition: color 0.15s;
+}
+#histogram-toggle:hover { color: #aaa; }
+#hist-help-btn {
+  background: none; border: 1px solid #333; border-radius: 50%;
+  color: #555; font-size: 0.6rem; line-height: 1;
+  width: 14px; height: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, border-color 0.15s; padding: 0;
+}
+#hist-help-btn:hover { color: #aaa; border-color: #666; }
+#hist-tooltip {
+  display: none; position: absolute;
+  bottom: calc(100% + 6px); right: 0;
+  width: 210px; background: #1a1a1a;
+  border: 1px solid #333; border-radius: 8px;
+  padding: 9px 11px; font-size: 0.69rem;
+  color: #aaa; line-height: 1.6;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+#hist-tooltip b { color: #ddd; }
+#hist-tooltip.open { display: block; }
+#histogram-canvas { display: block; }
+#histogram-wrap.collapsed #histogram-canvas { display: none; }
+#histogram-wrap.collapsed { padding-bottom: 4px; }
+
+/* ── Watermark / Speed apply actions ─────────────────── */
+#wm-actions {
+  display: flex; gap: 6px; margin-top: 6px;
+}
+#wm-actions button {
+  flex: 1; padding: 6px 0; border-radius: 6px;
+  border: 1px solid #333; background: #1a1a1a;
+  color: #aaa; font-size: 0.75rem; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+#wm-actions button:hover { background: #252525; color: #ddd; }
+#wm-apply {
+  background: #2a2a2a !important; color: #fff !important;
+  border-color: #555 !important;
+}
+
+/* ── Speed bar ────────────────────────────────────────── */
+#speed-bar {
+  display: none; flex-direction: column; gap: 4px;
+  padding: 8px 10px; border-top: 1px solid #1e1e1e;
+}
+#speed-actions {
+  display: flex; gap: 6px; margin-top: 4px;
+}
+#speed-actions button {
+  flex: 1; padding: 6px 0; border-radius: 6px;
+  border: 1px solid #333; background: #1a1a1a;
+  color: #aaa; font-size: 0.75rem; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+#speed-actions button:hover { background: #252525; color: #ddd; }
+#speed-apply {
+  background: #2a2a2a !important; color: #fff !important;
+  border-color: #555 !important;
+}
+
+/* ── Export dropdown ──────────────────────────────────── */
+#download-wrap {
+  position: relative;
+  display: none;
+}
+#download-wrap.visible { display: flex; }
+#download-btn {
+  display: flex; align-items: center; gap: 6px;
+}
+#download-caret {
+  width: 13px; height: 13px; opacity: 0.7; flex-shrink: 0;
+  transition: transform 0.15s;
+}
+#download-wrap.open #download-caret { transform: rotate(180deg); }
+#export-dropdown {
+  display: none;
+  position: absolute; right: 0; top: calc(100% + 6px);
+  min-width: 220px; background: #161616;
+  border: 1px solid #2a2a2a; border-radius: 10px;
+  padding: 4px 0; z-index: 300;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+#download-wrap.open #export-dropdown { display: block; }
+.export-opt {
+  display: block; width: 100%;
+  background: none; border: none; cursor: pointer;
+  text-align: left; padding: 8px 14px;
+  font-size: 0.78rem; color: #aaa;
+  transition: background 0.1s, color 0.1s;
+}
+.export-opt:hover { background: #1e1e1e; color: #eee; }
+.export-opt:first-child { font-weight: 600; color: #ddd; }
+.export-divider { height: 1px; background: #222; margin: 4px 0; }
+
+/* ── Undo / Redo buttons ──────────────────────────────── */
+#undo-btn, #redo-btn {
+  display: none; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  background: none; border: none; cursor: pointer;
+  color: #888; border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+  padding: 0;
+}
+#undo-btn svg, #redo-btn svg { width: 16px; height: 16px; }
+#undo-btn:hover, #redo-btn:hover { color: #ccc; background: #1e1e1e; }
+#undo-btn.visible, #redo-btn.visible { display: flex; }
+
+/* ── Apply Filter button ──────────────────────────────── */
+#apply-filter-btn {
+  display: none; width: 100%; margin-top: 6px;
+  padding: 7px 0; border-radius: 6px;
+  border: 1px solid #444; background: #222;
+  color: #ddd; font-size: 0.75rem; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+#apply-filter-btn:hover { background: #2a2a2a; color: #fff; }
+#apply-filter-btn.visible { display: block; }
+
 /* ── Changelog ────────────────────────────────────────── */
 #changelog-wrap {
   position: relative;
